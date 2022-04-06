@@ -1,6 +1,4 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
-import { hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
-import Todo from '../../app/Models/Todo'
 
 export default class UsersSchema extends BaseSchema {
   protected tableName = 'users'
@@ -10,7 +8,7 @@ export default class UsersSchema extends BaseSchema {
       table.increments('id').primary()
       table.string('email', 255).notNullable()
       table.string('password', 180).notNullable()
-      table.string('nickname', 50).notNullable()
+      table.string('nickname', 100).notNullable()
       table.string('remember_me_token').nullable()
 
       /**
@@ -24,9 +22,4 @@ export default class UsersSchema extends BaseSchema {
   public async down() {
     this.schema.dropTable(this.tableName)
   }
-
-  @hasMany(() => Todo, {
-    foreignKey: 'userId',
-  })
-  public todo: HasMany<typeof Todo>
 }

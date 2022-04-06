@@ -8,6 +8,11 @@ export default class Todos extends BaseSchema {
       table.increments('id').primary()
       table.string('content', 100).notNullable
       table.string('status', 50).defaultTo('onGoing')
+      table
+        .integer('user_id')
+        .unsigned()
+        .references('users.id')
+        .onDelete('CASCADE')
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })
