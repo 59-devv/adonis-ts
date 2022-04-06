@@ -18,3 +18,8 @@ Route.post('/todos', 'TodosController.create')
 Route.put('/todos/:id', 'TodosController.update')
 Route.delete('/todos/:id', 'TodosController.delete')
 Route.post('/upload', 'TodosController.upload')
+
+// UsersController
+Route.post('/login', 'UsersController.signUp')
+Route.post('/register', 'UsersController.signIn')
+Route.get('/profile', 'UsersController.profile').middleware('auth')

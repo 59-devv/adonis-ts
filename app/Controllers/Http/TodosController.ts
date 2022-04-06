@@ -16,7 +16,7 @@ export default class TodosController {
         const validatedData = await request.validate(CreateTodoValidator)
 
         await Todo.create(validatedData)
-        response.status(201).send('Todo successfully created.')
+        return response.status(201).send('Todo successfully created.')
     }
 
     // id를 통한 Todo 검색
@@ -24,7 +24,7 @@ export default class TodosController {
         const { id } = params
         const todo: Todo = await Todo.findOrFail(id)
         
-        response.status(200).send(todo)
+        return response.status(200).send(todo)
     }
 
     // id와 status를 받아서, status update
@@ -36,7 +36,7 @@ export default class TodosController {
         todo.status = status
         await todo.save()
         
-        response.status(201).send(todo)
+        return response.status(201).send(todo)
     }
 
     // id를 통한 Todo 삭제
@@ -46,7 +46,7 @@ export default class TodosController {
 
         await todo.delete()
 
-        response.status(204).send(`${id} todo successfully deleted`)
+        return response.status(204).send(`${id} todo successfully deleted`)
     }
 
     // csv 업로드를 통한 Todo 등록
@@ -72,6 +72,7 @@ export default class TodosController {
             throw SyntaxError('The first row\'s name should only be the \'content\'')
         }
         
+        // 예외를 모두 통과했을 경우 모든 Todo 저장하기
         todoList.forEach(async item => {
             if (item) {
                  await Todo.create( {
@@ -80,7 +81,7 @@ export default class TodosController {
             }
         })
         
-        // 예외를 통과하고 Todo 모두 저장한 후,
-        response.status(201).send('TodoList upload success.')
+        // Success
+        return response.status(201).send('TodoList upload success.')
     }
 }

@@ -1,34 +1,42 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Database from '@ioc:Adonis/Lucid/Database';
+import User from '../../Models/User';
+import SignInValidator from '../../Validators/SignInValidator';
 
 export default class UsersController {
+    // 회원가입
+    async signIn( { request }: HttpContextContract ) {
+        
+        /*
+         email, password, nickname - validator 추가해야함
+        */
 
-    async list() {
-        const result = Database.query().from('todos').select('*');
-        return await result;
+        const registerInfo = await request.validate(SignInValidator)
+        const user = await User.create(registerInfo)
+        console.log(user)
+        return user
     }
 
-    async create() {
-        return 'create() called';
+    // 로그인
+    async signUp( { auth, request, response }: HttpContextContract ) {
+        const { email, password } = request.only(['email', 'password'])
+        const token = await auth.use('api').attempt(email, password, {
+            expiresIn: '7days'
+        })
+        const user = await User.findBy('email', email)
+        return { user, token }
     }
 
-    async read( { request }:  HttpContextContract) {
-        const result = {
-            url: request.url(),
-            message: 'read() called'
+    // 유저 조회(로그인 해야만 확인 가능)
+    async profile( { auth }: HttpContextContract ) {
+        try {
+            const user = auth.user
+            return {
+                '메일주소': user?.email,
+                '닉네임': user?.nickname,
+                '가입일': user?.createdAt
+            }
+        } catch(error) {
+            console.log(error)
         }
-        return result;
     }
-
-    async update() {
-        return 'update() called';
-    }
-
-    async delete() {
-        return 'delete() called';
-    }
-
-}
-function use(arg0: string) {
-    throw new Error('Function not implemented.');
 }
