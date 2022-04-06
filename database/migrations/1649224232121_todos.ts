@@ -7,7 +7,7 @@ export default class Todos extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
       table.string('content', 100).notNullable
-      table.string('status', 50).defaultTo('onGoing')
+      table.string('status', 50).defaultTo('OnGoing').nullable
       table
         .integer('user_id')
         .unsigned()

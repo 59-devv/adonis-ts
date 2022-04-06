@@ -1,4 +1,4 @@
 export enum StatusEnum {
     OnGoing = 'OnGoing',
-    Success = 'Complete',
+    Complete = 'Complete',
 }
