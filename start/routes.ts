@@ -7,8 +7,6 @@ Route.get('/', async () => {
 // UsersController
 Route.get('/user', 'UsersController.list')
 
-// TodosController
-
 // UsersController
 Route.post('/login', 'UsersController.signUp')
 Route.post('/register', 'UsersController.signIn')

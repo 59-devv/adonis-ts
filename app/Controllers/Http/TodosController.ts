@@ -14,7 +14,7 @@ import ForbiddenException from '../../Exceptions/ForbiddenException';
 
 export default class TodosController {
     // 본인이 작성한 Todo 리스트 조회
-    async list( { auth, response }: HttpContextContract ) {
+    async list( { auth }: HttpContextContract ) {
         if (!auth.user) {
             throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
         } 
@@ -192,24 +192,22 @@ export default class TodosController {
                 throw new BadRequestException('잘못 작성된 파일입니다.', 400)
             }
             
+            console.log(`todo list: ${todoList}`)
             // TODO: 확인해봐야함
             // for (const item of todoList) {
-                //     if (item) {
-                    //         console.log(item)
-                    //         todo = todo.fill({ content: item.trim(), userId: userId })
-                    //         console.log(`asdfasdfasdfad: ${todo.content}`)
-                    //         // todo.useTransaction(trx)
-                    //         await todo.save()
-                    //     }
+                // if (item) {
+                    // console.log(item)
+                    // todo = todo.fill({ content: item.trim(), userId: userId })
+                    // console.log(`asdfasdfasdfad: ${todo.content}`)
+                    // await todo.save()
+                    // todo.useTransaction(trx)
+                    // }
                     // }
                     
-            console.log(`todo list: ${todoList}`)
             todoList.forEach(async (item) => {
                 if (item.trim()) {
                     let todo: Todo = new Todo()
-                    console.log(item)
                     todo = todo.fill({ content: item.trim(), userId: userId })
-                    console.log(`content: ${todo.content}`)
                     await todo.save()
                     todo.useTransaction(trx)
                 }
