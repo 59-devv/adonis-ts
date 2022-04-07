@@ -1,6 +1,8 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import User from '../../Models/User';
 import SignInValidator from '../../Validators/SignInValidator';
+import Database from '@ioc:Adonis/Lucid/Database';
+import SignUpValidator from '../../Validators/SignUpValidator';
 
 export default class UsersController {
     // 유저 목록 조회
@@ -11,37 +13,59 @@ export default class UsersController {
     }
 
     // 회원가입
-    async signIn( { request }: HttpContextContract ) {
-        const registerInfo = await request.validate(SignInValidator)
-        const user = await User.create(registerInfo)
+    async signIn( { request, response }: HttpContextContract ) {
+        const trx = await Database.transaction()
+        
+        // 유효성 검사
+        const { email, password, nickname } = await request.validate(SignInValidator)
+        
+        try {
+            // 유저 생성
+            const user = new User()
+            user.email = email
+            user.password = password
+            user.nickname = nickname
+            user.useTransaction(trx)
 
-        return user
+            // 성공 시 저장, transaction 반영
+            await user.save()
+            await trx.commit()
+
+            return response.status(201).send(user)
+
+        } catch(error) {
+            // 실패 시 transaction rollback 
+            await trx.rollback()
+            return response.send(error.message)
+        }
     }
 
     // 로그인
-    async signUp( { auth, request }: HttpContextContract ) {
-        const { email, password } = request.only(['email', 'password'])
-        const token = await auth.use('api').attempt(email, password, {
-            expiresIn: '7days'
-        })
-        const user = await User.findBy('email', email)
-
+    async signUp( { auth, request, response }: HttpContextContract ) {
+        const { email, password } = await request.validate(SignUpValidator)
+        const token = await auth.use('api').attempt(
+            email, 
+            password, 
+            { expiresIn: '7days' }
+            )
+        
+        const user = auth.user
+        
         return { user, token }
     }
  
     // 유저 조회(로그인 해야만 확인 가능)
     async profile( { auth, response }: HttpContextContract ) {
-        try {
-            const user = await User.findByOrFail('id', auth.user?.id)
+        if (!auth.user) {
+            return response.status(401).send('Unauthorized')
+        }
 
-            return {
-                '메일주소': user.email,
-                '닉네임': user.nickname,
-                '가입일': user.createdAt
-            }
-        } catch(error) {
-            return response.send('asdfasd')
-            // return response.status(403).send('로그인이 필요한 기능입니다.')
+        const user: User = auth.user
+
+        return {
+            '메일주소': user.email,
+            '닉네임': user.nickname,
+            '가입일': user.createdAt
         }
     }
 }

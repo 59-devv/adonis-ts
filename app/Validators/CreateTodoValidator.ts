@@ -9,14 +9,9 @@ export default class CreateTodoValidator {
     content: schema.string ( { trim: true }, [
       rules.minLength(4),
       rules.maxLength(15),
-      rules.unique( { table: 'todos', column: 'content' } )
     ]),
     status: schema.enum(Object.values(StatusEnum)),
-    // enumSet은 왜 안먹히지?
-    // status: schema.enumSet(
-      // [{ OnGoing: 'OnGoing', Complete: 'Complete' }] as const)
   })
-
 
   /* 
     custom message 만들기
@@ -25,11 +20,11 @@ export default class CreateTodoValidator {
   public messages = {
     'content.string': '{{ field }} must be a type of string.',
     'content.required': 'The {{ field }} is required to create a new Todo',
-    'content.unique': '{{ field }} already exist in Todo list.',
     'content.minLength': '{{ field }} length should over 4 letters.',
     'content.maxLength': '{{ field }} length should under 15 letters.',
     'status.enum': 'status have to be one of the Status codes.'
   }
+}
 
   /*
    * Define schema to validate the "shape", "type", "formatting" and "integrity" of data.
@@ -62,4 +57,3 @@ export default class CreateTodoValidator {
    * }
    *
    */
-}
