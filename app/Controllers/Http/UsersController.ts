@@ -3,6 +3,7 @@ import User from '../../Models/User';
 import SignInValidator from '../../Validators/SignInValidator';
 import Database from '@ioc:Adonis/Lucid/Database';
 import SignUpValidator from '../../Validators/SignUpValidator';
+import UnAuthorizedException from '../../Exceptions/UnAuthorizedException';
 
 export default class UsersController {
     // 유저 목록 조회
@@ -34,9 +35,8 @@ export default class UsersController {
             return response.status(201).send(user)
 
         } catch(error) {
-            // 실패 시 transaction rollback 
             await trx.rollback()
-            return response.send(error.message)
+            throw Error(error.message)
         }
     }
 
@@ -57,7 +57,8 @@ export default class UsersController {
     // 유저 조회(로그인 해야만 확인 가능)
     async profile( { auth, response }: HttpContextContract ) {
         if (!auth.user) {
-            return response.status(401).send('Unauthorized')
+            throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
+            // return response.status(401).send('Unauthorized')
         }
 
         const user: User = auth.user
