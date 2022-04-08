@@ -69,16 +69,16 @@ export default class TodosController {
     }
 
     // todoId를 통한 Todo 상세보기
-    async read( { response, params } : HttpContextContract) {
+    async read( { response, params, user, todo } : HttpContextContract) {
         const { id } = params
-        const todo = await Todo.find(id)
+        const todo2 = await Todo.find(id)
 
-        if (!todo) {
+        if (!todo2) {
             throw new BadRequestException('잘못된 요청입니다.', 400)
             // return response.status(400).send('BAD REQUEST')
         }
         
-        return response.status(200).send(todo)
+        return response.status(200).send(todo2)
     }
 
     // todoId와 status를 받아서, status update
@@ -192,26 +192,25 @@ export default class TodosController {
                 throw new BadRequestException('잘못 작성된 파일입니다.', 400)
             }
             
-            console.log(`todo list: ${todoList}`)
-            // TODO: 확인해봐야함
-            // for (const item of todoList) {
-                // if (item) {
-                    // console.log(item)
-                    // todo = todo.fill({ content: item.trim(), userId: userId })
-                    // console.log(`asdfasdfasdfad: ${todo.content}`)
-                    // await todo.save()
-                    // todo.useTransaction(trx)
-                    // }
-                    // }
-                    
-            todoList.forEach(async (item) => {
-                if (item.trim()) {
-                    let todo: Todo = new Todo()
-                    todo = todo.fill({ content: item.trim(), userId: userId })
-                    await todo.save()
-                    todo.useTransaction(trx)
-                }
-            });
+            async function uploadTodoList() {
+                console.time('calculatingTime')
+                const todoListPromise = todoList.map(async (item) => {
+                    if (item.trim()) {
+                        let todo: Todo = new Todo()
+                        todo = todo.fill({
+                            content: item.trim(),
+                            userId: userId 
+                        })
+                        await todo.save()
+                        todo.useTransaction(trx)
+                    }
+                })
+
+                await Promise.all(todoListPromise)
+                console.timeEnd('calculatingTime')
+            }
+
+            uploadTodoList()
             
             await trx.commit()
             return response.status(201).send('TodoList upload success.')

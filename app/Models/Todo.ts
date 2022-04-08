@@ -1,8 +1,11 @@
 import { DateTime } from 'luxon'
-import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm'
+import { BelongsTo, belongsTo, column, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
+import AppBaseModel from './AppBaseModel'
 import User from './User'
+import Tag from './Tag'
 
-export default class Todo extends BaseModel {
+export default class Todo extends AppBaseModel {
+
   @column({ isPrimary: true })
   public id: number
   
@@ -12,15 +15,20 @@ export default class Todo extends BaseModel {
   @column()
   public status: string | null
   
-  @column()
+  @column({ serializeAs: 'userId' })
   public userId: number
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, serializeAs: 'createdAt' })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: 'updatedAt' })
   public updatedAt: DateTime
 
-  @belongsTo(() => User)
+  @belongsTo(() => User, {
+    localKey: 'id'
+  })
   public user: BelongsTo<typeof User>
+
+  @manyToMany(() => Tag)
+  public tags: ManyToMany<typeof Tag>
 }

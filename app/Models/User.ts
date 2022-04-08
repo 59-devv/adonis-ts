@@ -1,9 +1,12 @@
 import { DateTime } from 'luxon'
 import Hash from '@ioc:Adonis/Core/Hash'
-import { column, beforeSave, BaseModel, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm';
+import AppBaseModel from './AppBaseModel';
+import { column, beforeSave, hasMany, HasMany, manyToMany, ManyToMany } from '@ioc:Adonis/Lucid/Orm';
 import Todo from './Todo';
+import Tag from './Tag';
 
-export default class User extends BaseModel {
+export default class User extends AppBaseModel {
+
   @column({ isPrimary: true })
   public id: number
 
@@ -16,13 +19,13 @@ export default class User extends BaseModel {
   @column()
   public nickname: string
 
-  @column()
+  @column({ serializeAs: 'rememberMeToken' })
   public rememberMeToken?: string
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, serializeAs: 'createdAt' })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: 'updatedAt' })
   public updatedAt: DateTime
 
   // 생성 및 저장 전, 패스워드 암호화 진행
@@ -35,4 +38,7 @@ export default class User extends BaseModel {
 
   @hasMany(() => Todo)
   public todos: HasMany<typeof Todo>
+
+  @manyToMany(() => Tag)
+  public userTags: ManyToMany<typeof Tag>
 }
