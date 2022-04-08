@@ -19,7 +19,9 @@ Route.get('/tag', 'TagsController.list')
 Route.group(() => {
   // Todo 
   Route.get('/todo', 'TodosController.list')
-  Route.get('/todo/:id', 'TodosController.read').middleware('user').middleware('todo')
+  Route.get('/todo/:id', 'TodosController.read')
+        .middleware('user')
+        .middleware('todo')
   Route.post('/todo', 'TodosController.create')
   Route.put('/todo/:id', 'TodosController.update')
   Route.delete('/todo/:id', 'TodosController.delete')
