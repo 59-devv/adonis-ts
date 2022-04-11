@@ -24,6 +24,8 @@ export default class SignInValidator {
       rules.required(),
       rules.unique( { table: 'users', column: 'nickname' } ),
       rules.regex(/^[a-zA-Zㄱ-힣0-9]{2,8}$/),
+      rules.minLength(2),
+      rules.maxLength(8),
     ])
   })
 
@@ -35,6 +37,8 @@ export default class SignInValidator {
     'password.required': '비밀번호는 필수 입력값입니다.',
     'nickname.required': '닉네임은 필수 입력값입니다.',
     'nickname.unique': '중복된 닉네임이 존재합니다.',
-    'nickname.regex': '닉네임은 2자 이상, 8자 미만으로 특수문자를 포함할 수 없습니다.',
+    'nickname.regex': '닉네임은 2자 이상, 8자 이하로 특수문자를 포함할 수 없습니다.',
+    'nickname.minLength': '닉네임은 2자 이상, 8자 이하로 특수문자를 포함할 수 없습니다.',
+    'nickname.maxLength': '닉네임은 2자 이상, 8자 이하로 특수문자를 포함할 수 없습니다.',
   }
 }

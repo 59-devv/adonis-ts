@@ -42,6 +42,9 @@ const databaseConfig: DatabaseConfig = {
         password: Env.get('MYSQL_PASSWORD', ''),
         database: Env.get('MYSQL_DB_NAME'),
       },
+      pool: {
+        max: 151
+      },
       migrations: {
         naturalSort: true,
       },

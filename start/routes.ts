@@ -1,5 +1,8 @@
 import Route from '@ioc:Adonis/Core/Route'
 
+// Index
+Route.get('/', () => "Adonis!" )
+
 // UsersController
 Route.post('/login', 'UsersController.signUp')
 Route.post('/register', 'UsersController.signIn')
