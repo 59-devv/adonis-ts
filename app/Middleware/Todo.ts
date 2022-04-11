@@ -4,7 +4,7 @@ import BadRequestException from '../Exceptions/BadRequestException';
 
 export default class GetTodo {
     public async handle(ctx: HttpContextContract, next: () => Promise<void>) {
-        const id = ctx.params['id']
+        const id = ctx.params['todoId']
 
         if (!id) {
             throw new BadRequestException('Bad Request', 400)

@@ -1,10 +1,10 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Todo from 'App/Models/Todo';
 import UnAuthorizedException from '../../Exceptions/UnAuthorizedException';
 import Database from '@ioc:Adonis/Lucid/Database';
 import Tag from 'App/Models/Tag';
 import BadRequestException from '../../Exceptions/BadRequestException';
 import ForbiddenException from '../../Exceptions/ForbiddenException';
+import NotFoundException from '../../Exceptions/NotFoundException';
 
 export default class TagsController {
 
@@ -13,66 +13,37 @@ export default class TagsController {
         return await Tag.all()
     }
     
-    // User Tag 생성하기 
-    async createUserTag({ auth, request, response }: HttpContextContract) {
-        if (!auth.user) {
+    // Todo Tag 생성하기
+    async createTodoTag({ user, todo, request, response }: HttpContextContract) {
+        if (!user) {
             throw new UnAuthorizedException('UnAuthorized', 401)
         }
 
-        const userId: number = auth.user.id
+        if (!todo) {
+            throw new NotFoundException('Not Found', 404)
+        }
+
+        const todoId = todo.id
         const tagName: string = request.only(['tagName']).tagName
+
+        console.log(tagName, todoId)
 
         if (!tagName) {
             throw new BadRequestException('Bad Request', 400)
         }
-        
-        const trx = await Database.transaction()
-        try {
-            const newTag: Tag = new Tag()
-            newTag.userId = userId
-            newTag.tag = tagName.trim()
-
-            newTag.useTransaction(trx)
-            
-            await newTag.save()
-            await trx.commit()
-
-            return response.status(201).send(newTag)
-
-        } catch(error) {
-            await trx.rollback()
-            throw new BadRequestException('Bad Request', 400)
-        }
-    }
-
-    // Todo Tag 생성하기
-    async createTodoTag({ auth, params, request, response }: HttpContextContract) {
-        if (!auth.user) {
-            throw new UnAuthorizedException('UnAuthorized', 401)
-        }
-
-        const userId: number = auth.user.id
-        const tagName: string = request.only(['tagName']).tagName
-        const todoId = params['id']
-
-        console.log(tagName, todoId)
-
-        if (!tagName || !todoId) {
-            throw new BadRequestException('1Bad Request', 400)
-        }
 
         const trx = await Database.transaction()
         try {
             const newTag: Tag = new Tag()
-            newTag.userId = userId
             newTag.todoId = todoId
             newTag.tag = tagName.trim()
 
             newTag.useTransaction(trx)
             
             await newTag.save()
+            await newTag.related('todoTags').attach([todoId])
             await trx.commit()
-
+            
             return response.status(201).send(newTag)
 
         } catch(error) {
@@ -82,34 +53,45 @@ export default class TagsController {
     }
 
     // 현재 로그인 유저의 Tag List 보여주기
-    async readUserTags({ auth }: HttpContextContract) {
-        if (!auth.user) {
+    async readUserTags({ user }: HttpContextContract) {
+        console.log(user)
+        if (!user) {
             throw new UnAuthorizedException('UnAuthorized', 401)
         }
 
-        const userId: number = auth.user.id
-        return await Tag.query().where('userId', userId)
+        return await user.related('tags').query()
     }
 
     // Tag 수정하기
-    async update({ auth, params, request, response }: HttpContextContract) {
-        if (!auth.user) {
+    async update({ user, params, request, response }: HttpContextContract) {
+        if (!user) {
             throw new UnAuthorizedException('UnAuthorized', 401)
         }
 
-        const userId: number = auth.user.id
-
+        const userId: number = user.id
         const tagId: number = params['tagId']
-        const newTagName: string = request.only['newTagName']
-        const targetTag = await Tag.find(tagId)
-        if (!tagId || !newTagName || !targetTag) {
-            throw new BadRequestException('Bad Request', 400)
-        }
 
+        const newTagName = request.only(['newTagName']).newTagName
+        
+        const targetTag = await Tag.find(tagId)
+        console.log(tagId, newTagName)
+        if (!tagId || !newTagName) {
+            throw new BadRequestException('1Bad Request', 400)
+        }
+        
+        if (!targetTag) {
+            throw new NotFoundException('Not Found', 404)
+        }
+        
         if (targetTag.userId !== userId) {
             throw new ForbiddenException('You are Forbidden', 403)
         }
 
+        const todo = await targetTag.related('todoTags').query().where('tag_id', tagId).first()
+        if (!todo) {
+            throw new NotFoundException('Not Found', 404)
+        }
+        
         const trx = await Database.transaction()
         try {
             targetTag.tag = newTagName
@@ -121,33 +103,41 @@ export default class TagsController {
             return response.status(201).send(targetTag)
 
         } catch(error) {
-            throw new BadRequestException('Bad Request', 400)
+            throw new BadRequestException('2Bad Request', 400)
         }
     }
 
     // Tag 삭제
-    async delete({ auth, params, response }: HttpContextContract) {
-        if (!auth.user) {
+    async delete({ user, todo, params, response }: HttpContextContract) {
+        if (!user) {
             throw new UnAuthorizedException('UnAuthorized', 401)
         }
 
-        const userId: number = auth.user.id
+        if (!todo) {
+            throw new NotFoundException('Not Found', 404)
+        }
+
+        const userId: number = user.id
 
         const tagId: number = params['tagId']
         const targetTag = await Tag.find(tagId)
-        if (!tagId || !targetTag) {
+        if (!tagId) {
             throw new BadRequestException('Bad Request', 400)
         }
 
+        if (!targetTag) {
+            throw new NotFoundException('Not Found', 404)
+        }
+
         if (targetTag.userId !== userId) {
-            throw new ForbiddenException('You are Forbidden', 403)
+            throw new UnAuthorizedException('UnAuthorized', 401)
         }
 
         const trx = await Database.transaction()
         try {
             targetTag.useTransaction(trx)
+            targetTag.related('todoTags').detach([todo.id])
             await targetTag.delete()
-
             await trx.commit()
             return response.status(200).send('Delete Complete')
             

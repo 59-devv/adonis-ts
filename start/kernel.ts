@@ -11,6 +11,7 @@
 
 import Server from '@ioc:Adonis/Core/Server'
 
+
 /*
 |--------------------------------------------------------------------------
 | Global middleware
@@ -42,6 +43,8 @@ Server.middleware.register([
 */
 Server.middleware.registerNamed({
   auth: () => import('App/Middleware/Auth'),
-  user: () => import('App/Middleware/GetUser'),
-  todo: () => import('App/Middleware/GetTodo')
+  user: () => import('App/Middleware/User'),
+  todo: () => import('App/Middleware/Todo')
+  // user: () => import('App/Middleware/TodoAndUser'),
+  // todo: () => import('App/Middleware/TodoAndUser'),
 })

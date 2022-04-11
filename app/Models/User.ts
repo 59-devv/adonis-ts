@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import Hash from '@ioc:Adonis/Core/Hash'
 import AppBaseModel from './AppBaseModel';
-import { column, beforeSave, hasMany, HasMany, manyToMany, ManyToMany } from '@ioc:Adonis/Lucid/Orm';
+import { column, beforeSave, hasMany, HasMany, hasManyThrough, HasManyThrough } from '@ioc:Adonis/Lucid/Orm';
 import Todo from './Todo';
 import Tag from './Tag';
 
@@ -39,6 +39,6 @@ export default class User extends AppBaseModel {
   @hasMany(() => Todo)
   public todos: HasMany<typeof Todo>
 
-  @manyToMany(() => Tag)
-  public userTags: ManyToMany<typeof Tag>
+  @hasManyThrough([() => Tag, () => Todo])
+  public tags: HasManyThrough<typeof Tag>
 }

@@ -6,7 +6,6 @@ import FileUploadValidator from '../../Validators/FileUploadValidator';
 import fs from 'fs'
 import UpdateTodoStatusValidator from 'App/Validators/UpdateTodoStatusValidator';
 import Database from '@ioc:Adonis/Lucid/Database';
-import User from 'App/Models/User';
 import BadRequestException from '../../Exceptions/BadRequestException';
 import UnsupportedMediaTypeException from '../../Exceptions/UnsupportedMediaTypeException';
 import UnAuthorizedException from '../../Exceptions/UnAuthorizedException';
@@ -14,18 +13,13 @@ import ForbiddenException from '../../Exceptions/ForbiddenException';
 
 export default class TodosController {
     // 본인이 작성한 Todo 리스트 조회
-    async list( { auth }: HttpContextContract ) {
-        if (!auth.user) {
+    async list( { user }: HttpContextContract ) {
+        if (!user) {
             throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
         } 
         
-        const user = await User.query().preload('todos').where('id', auth.user.id).first()
-
-        if (user) {
-            return user.todos
-        } else {
-            throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
-        }        
+        await user.load('todos')
+        return user.todos
     }
 
     // Todo 생성
