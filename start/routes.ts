@@ -18,7 +18,7 @@ Route.group(() => {
   // Tag
   Route.get('/todo/:todoId/tag', 'TagsController.readTodoTags')
   Route.post('/todo/:todoId/tag', 'TagsController.createTodoTag')
-}).middleware('user').middleware('todo')
+}).middleware('auth').middleware('user').middleware('todo')
 
 
 // Router with User Middleware

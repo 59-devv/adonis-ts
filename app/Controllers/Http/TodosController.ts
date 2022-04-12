@@ -15,7 +15,7 @@ export default class TodosController {
     // 본인이 작성한 Todo 리스트 조회
     async list( { user }: HttpContextContract ) {
         if (!user) {
-            throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
+            throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         } 
         
         await user.load('todos')
@@ -23,17 +23,15 @@ export default class TodosController {
     }
 
     // Todo 생성
-    async create( { auth, request, response }: HttpContextContract ) {
+    async create( { request, response, user }: HttpContextContract ) {
         const trx = await Database.transaction()
 
         const validatedData = await request.validate(CreateTodoValidator)
         const { content, status } = validatedData;
 
-        if (!auth.user) {
-            throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
+        if (!user) {
+            throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }
-        
-        const user = auth.user
 
         try {
             // New Todo
@@ -63,40 +61,36 @@ export default class TodosController {
     }
 
     // todoId를 통한 Todo 상세보기
-    async read( { response, params, user, todo } : HttpContextContract) {
-        const { id } = params
-        const todo2 = await Todo.find(id)
+    async read( { response, todo, user } : HttpContextContract) {
+        if (!user) {
+            throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
+        }
 
-        if (!todo2) {
-            throw new BadRequestException('잘못된 요청입니다.', 400)
-            // return response.status(400).send('BAD REQUEST')
+        if (!todo) {
+            throw new BadRequestException('잘못된 요청입니다.')
         }
         
-        return response.status(200).send(todo2)
+        return response.status(200).send(todo)
     }
 
     // todoId와 status를 받아서, status update
     // 로그인 한 본인의 Todo만 가능
-    async update( { auth, params, request, response }: HttpContextContract ) {
+    async update( { request, response, todo, user }: HttpContextContract ) {
         const trx = await Database.transaction()
 
-        const { id } = params
         const { status } = await request.validate(UpdateTodoStatusValidator)
-        const todo = await Todo.query().preload('user').where('id', id).first()
         
-        // id에 해당하는 todo가 없을 때
         if (!todo) {
             throw new BadRequestException('잘못된 요청입니다.')
             // return response.status(400).send('BAD REQUEST')
         }
 
-        // auth.user 가 존재하지 않을 때
-        if (!auth.user) {
+        if (!user) {
             throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }
 
         // 본인이 작성한 todo가 아닐 때
-        if (auth.user.id !== todo.userId) {
+        if (user.id !== todo.userId) {
             throw new ForbiddenException('본인의 Todo만 수정 가능합니다.')
             // return response.status(403).send('본인이 작성한 Todo만 수정 가능합니다.')
         }
@@ -116,25 +110,18 @@ export default class TodosController {
     }
 
     // id를 통한 Todo 삭제
-    async delete( { auth, request, response }: HttpContextContract ) {
+    async delete( { request, response, todo, user }: HttpContextContract ) {
         const trx = await Database.transaction()
 
-        if (!auth.user) {
+        if (!user) {
             throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }
         
-        if (!request.param('id') || !Number(request.param('id'))) {
-            throw new BadRequestException('잘못된 요청입니다.')
-        }
-
-        const id: number = request.param('id')
-        const todo = await Todo.query().preload('user').where('id', id).first()
-
         if (!todo) {
             throw new BadRequestException('잘못된 요청입니다.')
         }
 
-        if (todo.user.id !== auth.user?.id) {
+        if (todo.user.id !== user.id) {
             throw new ForbiddenException('본인의 Todo만 삭제 가능합니다.')
         }
 
@@ -143,7 +130,7 @@ export default class TodosController {
             await todo.delete()
             await trx.commit()
 
-            return response.status(204).send(`todo:${id}, successfully Deleted`)
+            return response.status(204).send('todo successfully Deleted')
 
         } catch(error) {
             await trx.rollback()
@@ -152,13 +139,13 @@ export default class TodosController {
     }
 
     // csv 업로드를 통한 Todo 등록
-    async upload( { auth, request, response }: HttpContextContract) {
+    async upload( { request, response, user }: HttpContextContract) {
 
-        if (!auth.user) {
+        if (!user) {
             throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }   
 
-        const userId = auth.user?.id
+        const userId = user.id
         const trx = await Database.transaction()
 
         const uploadedFile = await request.validate(FileUploadValidator)

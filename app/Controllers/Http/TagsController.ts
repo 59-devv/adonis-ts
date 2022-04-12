@@ -14,7 +14,7 @@ export default class TagsController {
     }
     
     // Todo Tag 생성하기
-    async createTodoTag({ user, todo, request, response }: HttpContextContract) {
+    async createTodoTag({ request, response, todo, user }: HttpContextContract) {
         if (!user) {
             throw new UnAuthorizedException('UnAuthorized')
         }
@@ -63,7 +63,7 @@ export default class TagsController {
     }
 
     // Tag 수정하기
-    async update({ user, params, request, response }: HttpContextContract) {
+    async update({ params, request, response, user }: HttpContextContract) {
         if (!user) {
             throw new UnAuthorizedException('UnAuthorized')
         }
@@ -108,7 +108,7 @@ export default class TagsController {
     }
 
     // Tag 삭제
-    async delete({ user, todo, params, response }: HttpContextContract) {
+    async delete({ params, response, todo, user }: HttpContextContract) {
         if (!user) {
             throw new UnAuthorizedException('UnAuthorized')
         }

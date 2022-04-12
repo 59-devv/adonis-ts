@@ -41,7 +41,7 @@ export default class UsersController {
     }
 
     // 로그인
-    async signUp( { auth, request }: HttpContextContract ) {
+    async signUp( { auth, user, request }: HttpContextContract ) {
         const { email, password } = await request.validate(SignUpValidator)
         const token = await auth.use('api').attempt(
             email, 
@@ -49,18 +49,14 @@ export default class UsersController {
             { expiresIn: '7days' }
             )
         
-        const user = auth.user
-        
         return { user, token }
     }
  
     // 유저 조회(로그인 해야만 확인 가능)
-    async profile( { auth }: HttpContextContract ) {
-        if (!auth.user) {
+    async profile( { user }: HttpContextContract ) {
+        if (!user) {
             throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }
-
-        const user: User = auth.user
 
         return {
             '메일주소': user.email,
