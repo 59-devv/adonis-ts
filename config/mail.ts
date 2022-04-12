@@ -1,5 +1,6 @@
 import Env from '@ioc:Adonis/Core/Env'
 import { MailConfig } from "@ioc:Adonis/Addons/Mail"
+import { rules } from '@ioc:Adonis/Core/Validator';
 
 const mailConfig: MailConfig = {
     mailer: 'smtp',
@@ -7,12 +8,12 @@ const mailConfig: MailConfig = {
       smtp: {
         driver: 'smtp',
         host: Env.get('SMTP_HOST') as string,
-        port: Env.get('SMTP_PORT') as string,
+        port: Env.get('SMTP_PORT') as unknown as string,
         auth: {
           type: 'login',
           user: Env.get('SMTP_USERNAME'),
           pass: Env.get('SMTP_PASSWORD')
-        }
+        },
       },
     },
   }

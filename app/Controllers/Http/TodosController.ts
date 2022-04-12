@@ -110,7 +110,7 @@ export default class TodosController {
     }
 
     // id를 통한 Todo 삭제
-    async delete( { request, response, todo, user }: HttpContextContract ) {
+    async delete( { response, todo, user }: HttpContextContract ) {
         const trx = await Database.transaction()
 
         if (!user) {
@@ -176,25 +176,22 @@ export default class TodosController {
                 map과 promise.all() 을 사용하였음
                 (처리시간 단축 : 700ms -> 200ms)
             */
-            async function uploadTodoList() {
-                console.time('calculatingTime')
-                const todoListPromise = todoList.map(async (item) => {
-                    if (item.trim()) {
-                        let todo: Todo = new Todo()
-                        todo = todo.fill({
-                            content: item.trim(),
-                            userId: userId 
-                        })
-                        await todo.save()
-                        todo.useTransaction(trx)
-                    }
-                })
+            console.time('calculatingTime')
+            const todoListPromise = todoList.map(async (item) => {
+                if (item.trim()) {
+                    let todo: Todo = new Todo()
+                    todo = todo.fill({
+                        content: item.trim(),
+                        userId: userId 
+                    })
+                    await todo.save()
+                    todo.useTransaction(trx)
+                }
+            })
 
-                await Promise.all(todoListPromise)
-                console.timeEnd('calculatingTime')
-            }
+            await Promise.all(todoListPromise)
+            console.timeEnd('calculatingTime')
 
-            uploadTodoList()
             
             await trx.commit()
             return response.status(201).send('TodoList upload success.')

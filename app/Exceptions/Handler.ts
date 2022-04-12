@@ -15,9 +15,24 @@
 
 import Logger from '@ioc:Adonis/Core/Logger'
 import HttpExceptionHandler from '@ioc:Adonis/Core/HttpExceptionHandler'
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
+import { Exception } from '@poppinss/utils/build/src/Exception';
 
 export default class ExceptionHandler extends HttpExceptionHandler {
   constructor () {
     super(Logger)
+  }
+
+  public async handle (error: Exception, ctx: HttpContextContract) {
+    // Auth에서 발생하는 UNAUTHORIZED 에러 Custom
+    if (error.code === 'E_UNAUTHORIZED_ACCESS') {
+      return ctx.response.status(error.status).send({
+        code: 'UNAUTHORIZED',
+        message: 'You are Unauthorized.',
+        status: 401
+      })
+    }
+
+    return super.handle(error, ctx)
   }
 }

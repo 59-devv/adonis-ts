@@ -7,7 +7,6 @@ export default class SignInValidator {
   public schema = schema.create({
     email: schema.string({ trim: true }, [
       rules.email({
-        sanitize: true,
         ignoreMaxLength: true,
       }),
       rules.unique( { table: 'users', column: 'email' } ),

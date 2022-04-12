@@ -19,7 +19,7 @@ export default class CreateTodoValidator {
    */
   public messages = {
     'content.string': '{{ field }} must be a type of string.',
-    'content.required': 'The {{ field }} is required to create a new Todo',
+    'content.required': '{{ field }} is required to create a new Todo',
     'content.minLength': '{{ field }} length should over 4 letters.',
     'content.maxLength': '{{ field }} length should under 15 letters.',
     'status.enum': 'status have to be one of the Status codes.'

@@ -1,14 +1,10 @@
-// 유저 API 테스트
 import test from 'japa'
 import supertest from 'supertest'
-import ApiTokens from '../database/migrations/1649219957431_api_tokens';
 
 const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`
-const tokenType = 'Bearer'
-let token = ''
 
 // 회원가입 - [POST]: /register
-test.group('회원가입 테스트', () => {
+test.group('회원가입 테스트 - [POST]: /register' , () => {
     test('1. 성공 - 회원가입', async (assert) => {
         const userPayload = {
             email: 'test1@test.com',
@@ -16,13 +12,16 @@ test.group('회원가입 테스트', () => {
             nickname: '테스트닉네임'
         }
 
-        const result = await supertest(BASE_URL)
+        const { body } = await supertest(BASE_URL)
             .post('/register')
             .send(userPayload)
             .expect(201)
             
-        assert.ok(result)
-    })
+        assert.exists(body.id)
+        assert.exists(body.email)
+        assert.exists(body.nickname)
+        // TODO: email 발송 EVENT 호출되는지 확인하는 방법이 있는지?
+    }).timeout(10000)
 
     test('2. 실패 - Email 형식', async (assert) => {
         const userPayload = {
@@ -233,140 +232,3 @@ test.group('회원가입 테스트', () => {
         assert.deepInclude(result.text, '닉네임은 2자 이상, 8자 이하로 특수문자를 포함할 수 없습니다.')
     })
 })
-    
-// 로그인 - [POST]: /login
-test.group('로그인 테스트', () => {
-    test('1. 성공 - 로그인', async (assert) => {
-        const userPayload = {
-            email: 'test1@test.com',
-            password: 'test1234!'
-        }
-
-        const result = await supertest(BASE_URL)
-            .post('/login')
-            .send(userPayload)
-            .expect(200)
-
-        token = result.body.token.token
-        assert.ok(result)
-    })
-
-    test('2. 실패 - Email 형식', async (assert) => {
-        const userPayload = {
-            email: 'test1.com',
-            password: 'test1234!'
-        }
-
-        const result = await supertest(BASE_URL)
-            .post('/login')
-            .send(userPayload)
-            .expect(422)
-
-        assert.notEqual(result.ok, true)
-        assert.deepInclude(result.text, '올바른 Email 형식이 아닙니다.')
-    })
-
-    test('3. 실패 - Email 공백', async (assert) => {
-        const userPayload = {
-            email: '',
-            password: 'test1234!'
-        }
-
-        const result = await supertest(BASE_URL)
-            .post('/login')
-            .send(userPayload)
-            .expect(422)
-
-        assert.notEqual(result.ok, true)
-        assert.deepInclude(result.text, 'Email 주소는 필수 입력값입니다.')
-    })
-
-    test('4. 실패 - 비밀번호 8자 미만', async (assert) => {
-        const userPayload = {
-            email: 'test1@test.com',
-            password: 'test12!'
-        }
-
-        const result = await supertest(BASE_URL)
-            .post('/login')
-            .send(userPayload)
-            .expect(422)
-
-        assert.notEqual(result.ok, true)
-        assert.deepInclude(result.text, '비밀번호는 최소 8자로 문자와 숫자를 모두 포함해야합니다.')
-    })
-
-    test('5. 실패 - 비밀번호 8자 숫자 미포함', async (assert) => {
-        const userPayload = {
-            email: 'test1@test.com',
-            password: 'testtest!'
-        }
-
-        const result = await supertest(BASE_URL)
-            .post('/login')
-            .send(userPayload)
-            .expect(422)
-
-        assert.notEqual(result.ok, true)
-        assert.deepInclude(result.text, '비밀번호는 최소 8자로 문자와 숫자를 모두 포함해야합니다.')
-    })
-
-    test('6. 실패 - 비밀번호 8자 문자 미포함', async (assert) => {
-        const userPayload = {
-            email: 'test1@test.com',
-            password: '12341234!'
-        }
-
-        const result = await supertest(BASE_URL)
-            .post('/login')
-            .send(userPayload)
-            .expect(422)
-
-        assert.notEqual(result.ok, true)
-        assert.deepInclude(result.text, '비밀번호는 최소 8자로 문자와 숫자를 모두 포함해야합니다.')
-    })
-
-    test('7. 실패 - 비밀번호 공백', async (assert) => {
-        const userPayload = {
-            email: 'test1@test.com',
-            password: ''
-        }
-
-        const result = await supertest(BASE_URL)
-            .post('/login')
-            .send(userPayload)
-            .expect(422)
-
-        assert.notEqual(result.ok, true)
-        assert.deepInclude(result.text, '비밀번호는 필수 입력값입니다.')
-    })
-
-    test('8. 실패 - 회원정보 불일치', async (assert) => {
-        const userPayload = {
-            email: 'test1@test.com',
-            password: 'test12345!'
-        }
-
-        const result = await supertest(BASE_URL)
-            .post('/login')
-            .send(userPayload)
-            .expect(400)
-
-        assert.notEqual(result.ok, true)
-    })
-})
-        
-// TODO: 토큰 넣어서 로그인 해야함
-// 전체 유저 리스트 - [GET]: /user
-test.group('전체 유저 리스트 조회', () => {
-    test('전체 회원 1명 조회', async (assert) => {
-        const result = await supertest(BASE_URL)
-            .get('/user')
-            .expect(200)
-        
-        assert.equal(result.ok, true)
-        console.log(result)
-    })
-})
-        
-        // 유저 한명 정보 - [GET]: /profile

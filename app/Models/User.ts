@@ -4,8 +4,7 @@ import AppBaseModel from './AppBaseModel';
 import { column, beforeSave, hasMany, HasMany, hasManyThrough, HasManyThrough, afterSave } from '@ioc:Adonis/Lucid/Orm';
 import Todo from './Todo';
 import Tag from './Tag';
-import Mail from '@ioc:Adonis/Addons/Mail';
-import Env from '@ioc:Adonis/Core/Env';
+import Event from '@ioc:Adonis/Core/Event'
 
 export default class User extends AppBaseModel {
 
@@ -21,8 +20,6 @@ export default class User extends AppBaseModel {
   @column()
   public nickname: string
 
-  @column({ serializeAs: 'rememberMeToken' })
-  public rememberMeToken?: string
 
   @column.dateTime({ autoCreate: true, serializeAs: 'createdAt' })
   public createdAt: DateTime
@@ -41,15 +38,7 @@ export default class User extends AppBaseModel {
   // 생성 및 저장 후, 메일 발송 진행
   @afterSave()
   public static async sendEmail (user: User) {
-      await Mail.use('smtp').send((message) => {
-        message
-        .from('nine.test.mail@gmail.com')
-        .to('ghoh@mediance.co.kr')
-        .subject(`Welcome Onboard, ${user.nickname}!`)
-        .text(`Welcome ${user.nickname}!`)
-      }, {
-        oTags: ['signup'],
-      })
+      Event.emit('new:user', user)
   }
 
   @hasMany(() => Todo)

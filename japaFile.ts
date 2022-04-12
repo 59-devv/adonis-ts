@@ -5,6 +5,7 @@ import execa from 'execa'
 import { configure } from 'japa'
 import sourceMapSupport from 'source-map-support'
 
+
 process.env.NODE_ENV = 'testing'
 process.env.ADONIS_ACE_CWD = join(__dirname)
 sourceMapSupport.install({ handleUncaughtExceptions: false })
@@ -18,10 +19,13 @@ async function runMigrations() {
   
 // Rollback Function
 async function rollbackMigrations() {
-await execa.node('ace', ['migration:rollback', '--batch=0'], {
-    stdio: 'inherit',
-})
+  await execa.node('ace', ['migration:rollback', '--batch=0'], {
+      stdio: 'inherit',
+  })
 }
+
+// usermaking
+
 
 async function startHttpServer() {
   const { Ignitor } = await import('@adonisjs/core/build/src/Ignitor')
