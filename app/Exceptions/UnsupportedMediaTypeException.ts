@@ -16,7 +16,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 export default class UnsupportedMediaTypeException extends Exception {
     public async handle(error: this, ctx: HttpContextContract) {
         ctx.response
-        .status(error.status)
+        .status(415)
         .send(error.message)
     }
 }

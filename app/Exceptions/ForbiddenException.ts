@@ -16,7 +16,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 export default class ForbiddenException extends Exception {
     public async handle(error: this, ctx: HttpContextContract) {
         ctx.response
-        .status(error.status)
+        .status(403)
         .send(error.message)
     }
 }

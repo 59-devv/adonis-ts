@@ -16,11 +16,11 @@ export default class TagsController {
     // Todo Tag 생성하기
     async createTodoTag({ user, todo, request, response }: HttpContextContract) {
         if (!user) {
-            throw new UnAuthorizedException('UnAuthorized', 401)
+            throw new UnAuthorizedException('UnAuthorized')
         }
 
         if (!todo) {
-            throw new NotFoundException('Not Found', 404)
+            throw new NotFoundException('Not Found')
         }
 
         const todoId = todo.id
@@ -29,7 +29,7 @@ export default class TagsController {
         console.log(tagName, todoId)
 
         if (!tagName) {
-            throw new BadRequestException('Bad Request', 400)
+            throw new BadRequestException('Bad Request')
         }
 
         const trx = await Database.transaction()
@@ -48,7 +48,7 @@ export default class TagsController {
 
         } catch(error) {
             await trx.rollback()
-            throw new BadRequestException('Bad Request', 400)
+            throw new BadRequestException('Bad Request')
         }
     }
 
@@ -56,7 +56,7 @@ export default class TagsController {
     async readUserTags({ user }: HttpContextContract) {
         console.log(user)
         if (!user) {
-            throw new UnAuthorizedException('UnAuthorized', 401)
+            throw new UnAuthorizedException('UnAuthorized')
         }
 
         return await user.related('tags').query()
@@ -65,7 +65,7 @@ export default class TagsController {
     // Tag 수정하기
     async update({ user, params, request, response }: HttpContextContract) {
         if (!user) {
-            throw new UnAuthorizedException('UnAuthorized', 401)
+            throw new UnAuthorizedException('UnAuthorized')
         }
 
         const userId: number = user.id
@@ -76,20 +76,20 @@ export default class TagsController {
         const targetTag = await Tag.find(tagId)
         console.log(tagId, newTagName)
         if (!tagId || !newTagName) {
-            throw new BadRequestException('1Bad Request', 400)
+            throw new BadRequestException('1Bad Request')
         }
         
         if (!targetTag) {
-            throw new NotFoundException('Not Found', 404)
+            throw new NotFoundException('Not Found')
         }
         
         if (targetTag.userId !== userId) {
-            throw new ForbiddenException('You are Forbidden', 403)
+            throw new ForbiddenException('You are Forbidden')
         }
 
         const todo = await targetTag.related('todoTags').query().where('tag_id', tagId).first()
         if (!todo) {
-            throw new NotFoundException('Not Found', 404)
+            throw new NotFoundException('Not Found')
         }
         
         const trx = await Database.transaction()
@@ -103,18 +103,18 @@ export default class TagsController {
             return response.status(201).send(targetTag)
 
         } catch(error) {
-            throw new BadRequestException('2Bad Request', 400)
+            throw new BadRequestException('2Bad Request')
         }
     }
 
     // Tag 삭제
     async delete({ user, todo, params, response }: HttpContextContract) {
         if (!user) {
-            throw new UnAuthorizedException('UnAuthorized', 401)
+            throw new UnAuthorizedException('UnAuthorized')
         }
 
         if (!todo) {
-            throw new NotFoundException('Not Found', 404)
+            throw new NotFoundException('Not Found')
         }
 
         const userId: number = user.id
@@ -122,15 +122,15 @@ export default class TagsController {
         const tagId: number = params['tagId']
         const targetTag = await Tag.find(tagId)
         if (!tagId) {
-            throw new BadRequestException('Bad Request', 400)
+            throw new BadRequestException('Bad Request')
         }
 
         if (!targetTag) {
-            throw new NotFoundException('Not Found', 404)
+            throw new NotFoundException('Not Found')
         }
 
         if (targetTag.userId !== userId) {
-            throw new UnAuthorizedException('UnAuthorized', 401)
+            throw new UnAuthorizedException('UnAuthorized')
         }
 
         const trx = await Database.transaction()
@@ -143,7 +143,7 @@ export default class TagsController {
             
         } catch(error) {
             await trx.rollback()
-            throw new BadRequestException('Bad Request', 400)
+            throw new BadRequestException('Bad Request')
         }
     }
 }

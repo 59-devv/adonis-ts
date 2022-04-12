@@ -17,7 +17,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 export default class UnAuthorizedException extends Exception {
     public async handle(error: this, ctx: HttpContextContract) {
         ctx.response
-        .status(error.status)
+        .status(401)
         .send(error.message)
     }
 }

@@ -1,9 +1,11 @@
 import { DateTime } from 'luxon'
 import Hash from '@ioc:Adonis/Core/Hash'
 import AppBaseModel from './AppBaseModel';
-import { column, beforeSave, hasMany, HasMany, hasManyThrough, HasManyThrough } from '@ioc:Adonis/Lucid/Orm';
+import { column, beforeSave, hasMany, HasMany, hasManyThrough, HasManyThrough, afterSave } from '@ioc:Adonis/Lucid/Orm';
 import Todo from './Todo';
 import Tag from './Tag';
+import Mail from '@ioc:Adonis/Addons/Mail';
+import Env from '@ioc:Adonis/Core/Env';
 
 export default class User extends AppBaseModel {
 
@@ -34,6 +36,20 @@ export default class User extends AppBaseModel {
     if (user.$dirty.password) {
       user.password = await Hash.make(user.password)
     }
+  }
+
+  // 생성 및 저장 후, 메일 발송 진행
+  @afterSave()
+  public static async sendEmail (user: User) {
+      await Mail.use('smtp').send((message) => {
+        message
+        .from('nine.test.mail@gmail.com')
+        .to('ghoh@mediance.co.kr')
+        .subject(`Welcome Onboard, ${user.nickname}!`)
+        .text(`Welcome ${user.nickname}!`)
+      }, {
+        oTags: ['signup'],
+      })
   }
 
   @hasMany(() => Todo)

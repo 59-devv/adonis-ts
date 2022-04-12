@@ -86,18 +86,18 @@ export default class TodosController {
         
         // id에 해당하는 todo가 없을 때
         if (!todo) {
-            throw new BadRequestException('잘못된 요청입니다.', 400)
+            throw new BadRequestException('잘못된 요청입니다.')
             // return response.status(400).send('BAD REQUEST')
         }
 
         // auth.user 가 존재하지 않을 때
         if (!auth.user) {
-            throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
+            throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }
 
         // 본인이 작성한 todo가 아닐 때
         if (auth.user.id !== todo.userId) {
-            throw new ForbiddenException('본인의 Todo만 수정 가능합니다.', 403)
+            throw new ForbiddenException('본인의 Todo만 수정 가능합니다.')
             // return response.status(403).send('본인이 작성한 Todo만 수정 가능합니다.')
         }
 
@@ -120,23 +120,22 @@ export default class TodosController {
         const trx = await Database.transaction()
 
         if (!auth.user) {
-            throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
+            throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }
         
         if (!request.param('id') || !Number(request.param('id'))) {
-            throw new BadRequestException('잘못된 요청입니다.', 400)
+            throw new BadRequestException('잘못된 요청입니다.')
         }
 
         const id: number = request.param('id')
         const todo = await Todo.query().preload('user').where('id', id).first()
 
         if (!todo) {
-            throw new BadRequestException('잘못된 요청입니다.', 400)
+            throw new BadRequestException('잘못된 요청입니다.')
         }
 
         if (todo.user.id !== auth.user?.id) {
-            throw new ForbiddenException('본인의 Todo만 삭제 가능합니다.', 403)
-            // return response.status(403).send('본인의 Todo만 삭제할 수 있습니다.')
+            throw new ForbiddenException('본인의 Todo만 삭제 가능합니다.')
         }
 
         try {
@@ -156,7 +155,7 @@ export default class TodosController {
     async upload( { auth, request, response }: HttpContextContract) {
 
         if (!auth.user) {
-            throw new UnAuthorizedException('승인되지 않은 사용자입니다.', 401)
+            throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }   
 
         const userId = auth.user?.id
@@ -167,8 +166,7 @@ export default class TodosController {
 
         // file validator의 extname은 왜 안먹는지 모르겠다.
         if (file.extname !== 'csv') {
-            throw new UnsupportedMediaTypeException('확장자가 CSV인 파일만 업로드 가능합니다.', 415)
-            // return response.status(415).send('Extname of file should only be \'csv\'')
+            throw new UnsupportedMediaTypeException('확장자가 CSV인 파일만 업로드 가능합니다.')
         }
 
         try {
@@ -183,9 +181,14 @@ export default class TodosController {
 
             // 첫 row가 content가 아닐 경우, 오류 발생 
             if (menuName !== 'content') {
-                throw new BadRequestException('잘못 작성된 파일입니다.', 400)
+                throw new BadRequestException('잘못 작성된 파일입니다.')
             }
             
+            /*
+                파일 읽고 쓰는 과정을 비동기로 처리하기 위해
+                map과 promise.all() 을 사용하였음
+                (처리시간 단축 : 700ms -> 200ms)
+            */
             async function uploadTodoList() {
                 console.time('calculatingTime')
                 const todoListPromise = todoList.map(async (item) => {
@@ -212,7 +215,7 @@ export default class TodosController {
         } catch(error) {
             await trx.rollback()
             console.log(error)
-            throw new BadRequestException('잘못된 요청입니다.', 400)
+            throw new BadRequestException('잘못된 요청입니다.')
         }
     }
 }
