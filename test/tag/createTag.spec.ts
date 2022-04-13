@@ -1,12 +1,12 @@
 import Todo from 'App/Models/Todo'
 import User from 'App/Models/User'
-import test, { group } from 'japa'
+import test from 'japa'
 import supertest from 'supertest'
 
 const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`
 
 // TAG 생성 - [POST]: /todo/:todoId/tag
-test.group('TAG 생성 테스트 - [POST]: /todo/:todoId/tag', (group) => {
+test.group('TAG 생성 테스트 - [POST]: /todo/:todoId/tag', () => {
     test('1. 성공 - TAG 생성', async (assert) => {
         const userPayload = {
             email: 'todoTest16@test.com',
@@ -14,7 +14,7 @@ test.group('TAG 생성 테스트 - [POST]: /todo/:todoId/tag', (group) => {
             nickname: '테스트투두16',
         }
 
-        await User.create(userPayload)
+        const user = await User.create(userPayload)
 
         const loginResult = await supertest(BASE_URL)
             .post('/login')
@@ -29,6 +29,7 @@ test.group('TAG 생성 테스트 - [POST]: /todo/:todoId/tag', (group) => {
         const todoPayload = {
             content: 'TAG 테스트',
             status : 'OnGoing',
+            userId: user.id
         }
 
         const todo: Todo = await Todo.create(todoPayload)
@@ -62,7 +63,7 @@ test.group('TAG 생성 테스트 - [POST]: /todo/:todoId/tag', (group) => {
         assert.equal(body.status, 401)
     })
 
-    test.only('3. 실패 - 없는 TODO ID', async (assert) => {
+    test('3. 실패 - 없는 TODO ID', async (assert) => {
         const userPayload = {
             email: 'todoTest17@test.com',
             password: 'test1234!',

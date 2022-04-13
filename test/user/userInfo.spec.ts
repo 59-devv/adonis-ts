@@ -18,6 +18,7 @@ test.group('전체 유저 리스트 조회 - [GET]: /user', (group) => {
     })
 
     test('1. 성공 - 전체 회원 조회', async (assert) => {
+
         const loginResult = await supertest(BASE_URL)
             .post('/login')
             .send({

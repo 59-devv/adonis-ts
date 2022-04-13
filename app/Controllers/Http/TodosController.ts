@@ -140,7 +140,6 @@ export default class TodosController {
 
     // csv 업로드를 통한 Todo 등록
     async upload( { request, response, user }: HttpContextContract) {
-
         if (!user) {
             throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }   
@@ -177,6 +176,7 @@ export default class TodosController {
                 (처리시간 단축 : 700ms -> 200ms)
             */
             console.time('calculatingTime')
+            
             const todoListPromise = todoList.map(async (item) => {
                 if (item.trim()) {
                     let todo: Todo = new Todo()
@@ -184,8 +184,8 @@ export default class TodosController {
                         content: item.trim(),
                         userId: userId 
                     })
-                    await todo.save()
                     todo.useTransaction(trx)
+                    await todo.save()
                 }
             })
 

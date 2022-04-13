@@ -1,6 +1,5 @@
 import Env from '@ioc:Adonis/Core/Env'
 import { MailConfig } from "@ioc:Adonis/Addons/Mail"
-import { rules } from '@ioc:Adonis/Core/Validator';
 
 const mailConfig: MailConfig = {
     mailer: 'smtp',

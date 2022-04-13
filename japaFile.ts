@@ -5,7 +5,6 @@ import execa from 'execa'
 import { configure } from 'japa'
 import sourceMapSupport from 'source-map-support'
 
-
 process.env.NODE_ENV = 'testing'
 process.env.ADONIS_ACE_CWD = join(__dirname)
 sourceMapSupport.install({ handleUncaughtExceptions: false })
@@ -24,9 +23,6 @@ async function rollbackMigrations() {
   })
 }
 
-// usermaking
-
-
 async function startHttpServer() {
   const { Ignitor } = await import('@adonisjs/core/build/src/Ignitor')
   process.env.PORT = String(await getPort())
@@ -37,10 +33,11 @@ async function startHttpServer() {
  * Configure test runner
  */
  configure({
-    files: ['test/**/*.spec.ts'],
-    before: [
-      runMigrations,
-      startHttpServer,
-    ],
-    after: [rollbackMigrations],
+      files: ['test/**/*.spec.ts'],
+      before: [
+        rollbackMigrations,
+        runMigrations,
+        startHttpServer,
+      ],
+      after: [runMigrations],
 })

@@ -35,10 +35,10 @@ export default class TagsController {
         const trx = await Database.transaction()
         try {
             const newTag: Tag = new Tag()
+            newTag.useTransaction(trx)
+            
             newTag.todoId = todoId
             newTag.tag = tagName.trim()
-
-            newTag.useTransaction(trx)
             
             await newTag.save()
             await newTag.related('todoTags').attach([todoId])
@@ -54,12 +54,25 @@ export default class TagsController {
 
     // 현재 로그인 유저의 Tag List 보여주기
     async readUserTags({ user }: HttpContextContract) {
-        console.log(user)
         if (!user) {
             throw new UnAuthorizedException('UnAuthorized')
         }
 
         return await user.related('tags').query()
+    }
+
+    // Todo Id 받아서 Tag List 보여주기
+    async readTodoTags({ user, todo }: HttpContextContract) {
+        if (!user) {
+            throw new UnAuthorizedException('UnAuthorized')
+        }
+
+        if (!todo) {
+            throw new NotFoundException('Not Found')
+        }
+
+        await todo.load('tags')
+        return todo.tags
     }
 
     // Tag 수정하기
