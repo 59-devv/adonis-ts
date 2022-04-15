@@ -19,5 +19,6 @@ const body = [
 
 const result = body.filter(item => item.tag === 'Get Tag3')
 
-const rand = body[Math.floor(Math.random() * 2)]
-console.log(rand)
+const randomNumber = body[Math.floor(Math.random() * 2)]
+const randomString = Math.random().toString(36).substring(2);
+console.log(randomString)

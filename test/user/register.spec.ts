@@ -1,33 +1,36 @@
 import test from 'japa'
 import supertest from 'supertest'
+import { UserFactory } from '../../database/factories/index';
 
 const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`
 
 // 회원가입 - [POST]: /register
-test.group('회원가입 테스트 - [POST]: /register' , () => {
+test.group('회원가입 테스트 - [POST]: /register', () => {
     test('1. 성공 - 회원가입', async (assert) => {
+        const { email, password, nickname } = await UserFactory.make()
+
         const userPayload = {
-            email: 'test1@test.com',
-            password: 'test1234!',
-            nickname: '테스트닉네임'
+            email,
+            password,
+            nickname,
         }
 
         const { body } = await supertest(BASE_URL)
             .post('/register')
             .send(userPayload)
-            .expect(201)
-            
-        assert.exists(body.id)
+
         assert.exists(body.email)
         assert.exists(body.nickname)
         // TODO: email 발송 EVENT 호출되는지 확인하는 방법이 있는지?
     }).timeout(10000)
 
     test('2. 실패 - Email 형식', async (assert) => {
+        const { email, password, nickname } = await UserFactory.merge({ email: 'factoryTest.com' }).make()
+
         const userPayload = {
-            email: 'test1.com',
-            password: 'test1234!',
-            nickname: '테스트닉네임1'
+            email: email,
+            password: password,
+            nickname: nickname,
         }
 
         const result = await supertest(BASE_URL)
@@ -40,10 +43,13 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('3. 실패 - 중복된 Email', async (assert) => {
+        await UserFactory.merge({ email: 'adonis2@gmail.com' }).create()
+
+        const { email, password, nickname } = await UserFactory.merge({ email: 'adonis2@gmail.com' }).make()
         const userPayload = {
-            email: 'test1@test.com',
-            password: 'test1234!',
-            nickname: '테스트닉네임1'
+            email: email,
+            password: password,
+            nickname: nickname,
         }
 
         const result = await supertest(BASE_URL)
@@ -56,10 +62,12 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('4. 실패 - Email 공백', async (assert) => {
+        const { password, nickname } = await UserFactory.make()
+
         const userPayload = {
             email: '',
-            password: 'test1234!',
-            nickname: '테스트닉네임1'
+            password: password,
+            nickname: nickname,
         }
 
         const result = await supertest(BASE_URL)
@@ -72,10 +80,11 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('5. 실패 - 비밀번호 8자리 미만', async (assert) => {
+        const { email, nickname } = await UserFactory.make()
         const userPayload = {
-            email: 'test2@test.com',
+            email: email,
             password: 'test123',
-            nickname: '테스트닉네임1'
+            nickname: nickname
         }
 
         const result = await supertest(BASE_URL)
@@ -88,10 +97,11 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('6. 실패 - 비밀번호 숫자 미포함', async (assert) => {
+        const { email, nickname } = await UserFactory.make()
         const userPayload = {
-            email: 'test2@test.com',
+            email: email,
             password: 'testtes!',
-            nickname: '테스트닉네임1'
+            nickname: nickname
         }
 
         const result = await supertest(BASE_URL)
@@ -104,10 +114,11 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('7. 실패 - 비밀번호 문자 미포함', async (assert) => {
+        const { email, nickname } = await UserFactory.make()
         const userPayload = {
-            email: 'test2@test.com',
+            email: email,
             password: '1234123!',
-            nickname: '테스트닉네임1'
+            nickname: nickname
         }
 
         const result = await supertest(BASE_URL)
@@ -120,10 +131,11 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('8. 실패 - 비밀번호 특수문자 미포함', async (assert) => {
+        const { email, nickname } = await UserFactory.make()
         const userPayload = {
-            email: 'test2@test.com',
+            email: email,
             password: 'test1234',
-            nickname: '테스트닉네임1'
+            nickname: nickname
         }
 
         const result = await supertest(BASE_URL)
@@ -136,10 +148,11 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('9. 실패 - 비밀번호 공백', async (assert) => {
+        const { email, nickname } = await UserFactory.make()
         const userPayload = {
-            email: 'test2@test.com',
+            email: email,
             password: '',
-            nickname: '테스트닉네임1'
+            nickname: nickname
         }
 
         const result = await supertest(BASE_URL)
@@ -152,9 +165,10 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('10. 실패 - 닉네임 공백', async (assert) => {
+        const { email, password } = await UserFactory.make()
         const userPayload = {
-            email: 'test2@test.com',
-            password: 'test1234!',
+            email: email,
+            password: password,
             nickname: ''
         }
 
@@ -169,10 +183,13 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
 
 
     test('11. 실패 - 닉네임 중복', async (assert) => {
+        await UserFactory.merge({ nickname: '테스트닉네임' }).create()
+
+        const { email, password, nickname } = await UserFactory.merge({ nickname: '테스트닉네임' }).create()
         const userPayload = {
-            email: 'test2@test.com',
-            password: 'test1234!',
-            nickname: '테스트닉네임'
+            email: email,
+            password: password,
+            nickname: nickname
         }
 
         const result = await supertest(BASE_URL)
@@ -185,10 +202,11 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('12. 실패 - 닉네임 2자 미만', async (assert) => {
+        const { email, password, nickname } = await UserFactory.merge({ nickname: '왓' }).make()
         const userPayload = {
-            email: 'test2@test.com',
-            password: 'test1234!',
-            nickname: '왓'
+            email: email,
+            password: password,
+            nickname: nickname
         }
 
         const result = await supertest(BASE_URL)
@@ -201,10 +219,11 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('13. 실패 - 닉네임 8자 초과', async (assert) => {
+        const { email, password, nickname } = await UserFactory.merge({ nickname: '동해물과백두산이마' }).make()
         const userPayload = {
-            email: 'test2@test.com',
-            password: 'test1234!',
-            nickname: '동해물과백두산이마'
+            email: email,
+            password: password,
+            nickname: nickname
         }
 
         const result = await supertest(BASE_URL)
@@ -217,9 +236,10 @@ test.group('회원가입 테스트 - [POST]: /register' , () => {
     })
 
     test('14. 실패 - 닉네임 특수문자 포함', async (assert) => {
+        const { email, password, nickname } = await UserFactory.merge({ nickname: '독도는우리땅!' }).make()
         const userPayload = {
-            email: 'test2@test.com',
-            password: 'test1234!',
+            email: email,
+            password: password,
             nickname: '독도는우리땅!'
         }
 

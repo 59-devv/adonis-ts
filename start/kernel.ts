@@ -22,7 +22,7 @@ import Server from '@ioc:Adonis/Core/Server'
 |
 */
 Server.middleware.register([
-  () => import('@ioc:Adonis/Core/BodyParser'),
+    () => import('@ioc:Adonis/Core/BodyParser'),
 ])
 
 /*
@@ -42,9 +42,8 @@ Server.middleware.register([
 |
 */
 Server.middleware.registerNamed({
-  auth: () => import('App/Middleware/Auth'),
-  user: () => import('App/Middleware/User'),
-  todo: () => import('App/Middleware/Todo')
-  // user: () => import('App/Middleware/TodoAndUser'),
-  // todo: () => import('App/Middleware/TodoAndUser'),
+    auth: () => import('App/Middleware/Auth'),
+    user: () => import('App/Middleware/User'),
+    todo: () => import('App/Middleware/Todo'),
+    requestData: () => import('App/Middleware/RequestData')
 })

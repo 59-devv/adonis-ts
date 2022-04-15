@@ -6,14 +6,15 @@ import Tag from 'App/Models/Tag';
 
 export const UserFactory = Factory
     .define(User, ({ faker }) => {
-        const username = faker.lorem.word(6)
-        const domain = 'gmail.com'
+        const email = faker.internet.email()
         return {
-            email: `${username}@${domain}`,
+            email: email,
             password: 'test1234!',
-            nickname: faker.lorem.word(7)
+            nickname: Math.random().toString(36).substring(2, 10)
         }
-    }).build()
+    })
+    .relation('todos', () => TodoFactory)
+    .build()
 
 export const TodoFactory = Factory
     .define(Todo, ({ faker }) => {
@@ -22,13 +23,14 @@ export const TodoFactory = Factory
             content: faker.lorem.word(6),
             status: status,
         }
-    }).build()
+    })
+    .relation('tags', () => TagFactory)
+    .build()
 
 export const TagFactory = Factory
     .define(Tag, async ({ faker }) => {
-        const todoId = Math.floor(Math.random() * (await Todo.all()).length) + 1
         return {
-            content: faker.lorem.word(8),
-            todoId: todoId,
+            tag: faker.lorem.word(8),
         }
-    }).build()
+    })
+    .build()

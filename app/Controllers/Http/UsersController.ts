@@ -14,12 +14,12 @@ export default class UsersController {
     }
 
     // 회원가입
-    async signIn( { request, response }: HttpContextContract ) {
+    async signIn({ request, response }: HttpContextContract) {
         const trx = await Database.transaction()
-        
+
         // 유효성 검사
         const { email, password, nickname } = await request.validate(SignInValidator)
-        
+
         try {
             // 유저 생성
             const user = new User()
@@ -34,29 +34,45 @@ export default class UsersController {
 
             return response.status(201).send(user)
 
-        } catch(error) {
+        } catch (error) {
             await trx.rollback()
             throw Error(error.message)
         }
     }
 
     // 로그인
-    async signUp( { auth, user, request }: HttpContextContract ) {
+    async signUp({ auth, user, request }: HttpContextContract) {
         const { email, password } = await request.validate(SignUpValidator)
         const token = await auth.use('api').attempt(
-            email, 
-            password, 
+            email,
+            password,
             { expiresIn: '7days' }
-            )
-        
+        )
+
         return { user, token }
     }
- 
+
     // 유저 조회(로그인 해야만 확인 가능)
-    async profile( { user }: HttpContextContract ) {
-        if (!user) {
+    // async profile( { user }: HttpContextContract ) {
+    //     if (!user) {
+    //         throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
+    //     }
+
+    //     return {
+    //         '메일주소': user.email,
+    //         '닉네임': user.nickname,
+    //         '가입일': user.createdAt
+    //     }
+    // }
+
+    // test
+    async profile({ requestData }: HttpContextContract) {
+        console.log(requestData)
+        if (!requestData) {
             throw new UnAuthorizedException('승인되지 않은 사용자입니다.')
         }
+
+        const user = requestData
 
         return {
             '메일주소': user.email,

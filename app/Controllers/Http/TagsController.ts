@@ -12,7 +12,7 @@ export default class TagsController {
     async list() {
         return await Tag.all()
     }
-    
+
     // Todo Tag 생성하기
     async createTodoTag({ request, response, todo, user }: HttpContextContract) {
         if (!user) {
@@ -26,8 +26,6 @@ export default class TagsController {
         const todoId = todo.id
         const tagName: string = request.only(['tagName']).tagName
 
-        console.log(tagName, todoId)
-
         if (!tagName) {
             throw new BadRequestException('Bad Request')
         }
@@ -35,18 +33,18 @@ export default class TagsController {
         const trx = await Database.transaction()
         try {
             const newTag: Tag = new Tag()
-            newTag.useTransaction(trx)
-            
+
             newTag.todoId = todoId
             newTag.tag = tagName.trim()
-            
+
+            newTag.useTransaction(trx)
             await newTag.save()
-            await newTag.related('todoTags').attach([todoId])
+            await newTag.related('todos').attach([todoId])
             await trx.commit()
-            
+
             return response.status(201).send(newTag)
 
-        } catch(error) {
+        } catch (error) {
             await trx.rollback()
             throw new BadRequestException('Bad Request')
         }
@@ -58,7 +56,8 @@ export default class TagsController {
             throw new UnAuthorizedException('UnAuthorized')
         }
 
-        return await user.related('tags').query()
+        const tags: Tag[] = await user.related('tags').query()
+        return tags
     }
 
     // Todo Id 받아서 Tag List 보여주기
@@ -85,26 +84,27 @@ export default class TagsController {
         const tagId: number = params['tagId']
 
         const newTagName = request.only(['newTagName']).newTagName
-        
         const targetTag = await Tag.find(tagId)
-        console.log(tagId, newTagName)
-        if (!tagId || !newTagName) {
-            throw new BadRequestException('1Bad Request')
+
+        if (!newTagName) {
+            throw new BadRequestException('Bad Request')
         }
-        
+
         if (!targetTag) {
             throw new NotFoundException('Not Found')
         }
-        
-        if (targetTag.userId !== userId) {
+
+        const tagUser = await targetTag.getUser()
+
+        if (tagUser.id !== userId) {
             throw new ForbiddenException('You are Forbidden')
         }
 
-        const todo = await targetTag.related('todoTags').query().where('tag_id', tagId).first()
+        const todo = await targetTag.related('todos').query().where('tag_id', tagId).first()
         if (!todo) {
             throw new NotFoundException('Not Found')
         }
-        
+
         const trx = await Database.transaction()
         try {
             targetTag.tag = newTagName
@@ -115,7 +115,7 @@ export default class TagsController {
 
             return response.status(201).send(targetTag)
 
-        } catch(error) {
+        } catch (error) {
             throw new BadRequestException('2Bad Request')
         }
     }
@@ -127,10 +127,8 @@ export default class TagsController {
         }
 
         if (!todo) {
-            throw new NotFoundException('Not Found')
+            throw new NotFoundException('Todo Not Found')
         }
-
-        const userId: number = user.id
 
         const tagId: number = params['tagId']
         const targetTag = await Tag.find(tagId)
@@ -139,22 +137,18 @@ export default class TagsController {
         }
 
         if (!targetTag) {
-            throw new NotFoundException('Not Found')
-        }
-
-        if (targetTag.userId !== userId) {
-            throw new UnAuthorizedException('UnAuthorized')
+            throw new NotFoundException('Tag Not Found')
         }
 
         const trx = await Database.transaction()
         try {
             targetTag.useTransaction(trx)
-            targetTag.related('todoTags').detach([todo.id])
+            targetTag.related('todos').detach([todo.id])
             await targetTag.delete()
             await trx.commit()
             return response.status(200).send('Delete Complete')
-            
-        } catch(error) {
+
+        } catch (error) {
             await trx.rollback()
             throw new BadRequestException('Bad Request')
         }
